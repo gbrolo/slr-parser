@@ -1,0 +1,11 @@
+COMPILER Ejemplo
+
+CHARACTERS
+    letter = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".
+    char = ANY-letter-"&"-'$'.
+
+TOKENS
+    tokenazo = letter.
+    charazo = char.
+
+END Ejemplo.

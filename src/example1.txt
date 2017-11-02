@@ -1,0 +1,29 @@
+COMPILER prueba
+
+CHARACTERS
+letter = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".
+digit = "0123456789".
+hexdigit = digit+"ABCDEF".
+chars = 'a'..'Z'.
+
+KEYWORDS
+if = "if".
+while = "while".
+
+TOKENS
+id = letter{letter}.
+number = digit{digit}.
+hexnumber = hexdigit{hexdigit}"(H)".
+charsequence = chars{chars}"(CH)".
+hexchar = hexdigit"(HC)".
+
+PRODUCTIONS
+E = T '+' E.
+E = T.
+T = int '*' T.
+T = int.
+T = (E).
+
+IGNORE " ".
+
+END prueba.

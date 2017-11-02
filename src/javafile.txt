@@ -1,0 +1,56 @@
+COMPILER CompilationUnit
+
+CHARACTERS
+  tab           = CHR(09).
+  lf            = CHR(10).
+  cr            = CHR(13).
+
+  zero          = '0'.
+  zeroToThree   = zero + "123" .
+  octalDigit    = zero + "1234567" .
+  nonZeroDigit  = "123456789".
+  digit         = '0' + nonZeroDigit .
+  hexDigit      = digit + "ABCDEFabcdef" .
+
+KEYWORDS
+  boolean = "boolean".
+  byte    = "byte".
+  char    = "char".
+  class   = "class".
+  double  = "double".
+  false   = "false".
+  final   = "final".
+  float   = "float".
+  int     = "int".
+  long    = "long".
+  new     = "new".
+  null    = "null".
+  short   = "short".
+  static  = "static".
+  super   = "super".
+  this    = "this".
+  true    = "true".
+  void    = "void".
+
+  colon   = ":".
+  comma   = ",".
+  dec     = "--".
+  dot     = ".".
+  inc     = "++".
+  lbrace  = "{".
+  lbrack  = "[".
+  lpar    = "(".
+  minus   = "-".
+  not     = "!".
+  plus    = "+".
+  rbrace  = "}".
+  rbrack  = "]".
+  rpar    = ")".
+  tilde   = "~".
+
+TOKENS
+  ident = letter { letter | digit }.
+
+
+
+END CompilationUnit.
