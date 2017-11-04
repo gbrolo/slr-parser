@@ -47,6 +47,7 @@ public class Lexer {
     private String startSymbol; // Start symbol of productions
 
     private HashMap<Integer, List<HashMap>> parsingTable;
+    private HashMap<String, Integer> productionsIdsMap;
 
     private LR0DFA dfa;
 
@@ -86,6 +87,7 @@ public class Lexer {
         specialTerminalsFound = new LinkedList<>();
 
         parsingTable = new HashMap<>();
+        productionsIdsMap = new HashMap<>();
 
         dfa = new LR0DFA();
         specialTerminalsCounter = 0;
@@ -133,8 +135,24 @@ public class Lexer {
             List<String> bdlst = productions.get(splittedProd[0]);
             bdlst.addAll(body);
             productions.put(splittedProd[0], bdlst);
+
+            // productionsIdsMap
+            for (String bd : bdlst) {
+                String product = splittedProd[0] + "→" + bd;
+                if (!productionsIdsMap.containsKey(product)) {
+                    productionsIdsMap.put(product, dfa.productionsIds);
+                    dfa.productionsIds++;
+                }
+            }
         } else {
             productions.put(splittedProd[0], body);
+
+            // productionsIdsMap
+            String product = splittedProd[0] + "→" + body.get(0);
+            if (!productionsIdsMap.containsKey(product)) {
+                productionsIdsMap.put(product, dfa.productionsIds);
+                dfa.productionsIds++;
+            }
         }
     }
 
@@ -208,9 +226,12 @@ public class Lexer {
         // parsing table
         makeParsingTable();
         System.out.println("PARSING TABLE: " + parsingTable.toString());
+        System.out.println("PRODUCTIONS IDS MAP: " + productionsIdsMap.toString());
+
+        // TODO parsing
     }
 
-    // TODO parsing table
+    // parsing table
     public void makeParsingTable() {
         // empty table
         for (LR0Node node : dfa.getNodes()) {
@@ -240,7 +261,7 @@ public class Lexer {
             parsingTable.put(iState, internal);
         }
 
-        // TODO look for transition with startingSymbol
+        // look for transition with startingSymbol
         for (LR0Node node : dfa.getNodes()) {
             List<String> extProd = node.getExtProductions();
             for (String prod : extProd) {
@@ -255,6 +276,41 @@ public class Lexer {
                         parsingTable.put(node.getId(), internal);
                     }
                 }
+            }
+        }
+
+        // Reduce operations
+        for (LR0Node node : dfa.getNodes()) {
+            if (node.isFinalState()) {
+                String lastProd = node.getExtProductions().get(node.getExtProductions().size()-1);
+                if (lastProd.charAt(lastProd.length()-1) == '.') {
+                    String removeDot = lastProd.substring(0, lastProd.length()-1);
+
+                    try {
+                        int index = productionsIdsMap.get(removeDot);
+                        String reduce = "R" + index;
+                        String head = Character.toString(lastProd.charAt(0));
+                        List<String> followSymbols = follow.get(head);
+
+                        HashMap<String, String> hash = new HashMap<>();
+                        List<HashMap> internal = parsingTable.get(node.getId());
+                        hash.put("$", reduce);
+                        internal.add(hash);
+
+                        for (String symbol : followSymbols) {
+                            hash = new HashMap<>();
+                            hash.put(symbol, reduce);
+                            if (!internal.contains(hash)) {
+                                internal.add(hash);
+                            }
+                        }
+
+                        parsingTable.put(node.getId(), internal);
+
+                    } catch (Exception e) {
+                    }
+                }
+
             }
         }
     }
@@ -437,6 +493,8 @@ public class Lexer {
                 computeFollow(symbol);
             }
         }
+
+        System.out.println("FOLLOW: " + follow.toString());
 
         // for this time, lets make an internal user interface so that he can compute firsts a and follows
 //        Scanner scanner = new Scanner(System.in);

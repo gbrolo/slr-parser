@@ -9,6 +9,7 @@ import java.util.Stack;
  */
 public class LR0DFA {
     public static int numberOfNodes;
+    public static int productionsIds;
 
     private List<LR0Transition> trList;
     private List<LR0Node> finalNodes;
@@ -19,6 +20,7 @@ public class LR0DFA {
 
     public LR0DFA() {
         numberOfNodes = 0;
+        productionsIds = 1;
         trList = new LinkedList<>();
         finalNodes = new LinkedList<>();
         nodes = new LinkedList<>();
