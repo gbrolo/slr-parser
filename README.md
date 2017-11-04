@@ -1,4 +1,4 @@
-# Cocol Parserspec
+# Cocol SLR(0)
 
 Provide an archive that follows Cocol grammar, then check if it's sintactically correct. Then, provide
 an archive and lex it for token generation.
@@ -10,7 +10,7 @@ With first and follow included!
 You can see a demonstration at:
 
 ```
-https://youtu.be/xfJDSN8wc10
+https://youtu.be/RlzF9VBpuks
 ```
 
 Note: video is in spanish.
