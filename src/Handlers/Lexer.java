@@ -48,6 +48,8 @@ public class Lexer {
 
     private HashMap<Integer, List<HashMap>> parsingTable;
     private HashMap<String, Integer> productionsIdsMap;
+    private HashMap<Integer, String> productionsIdsMapRev;
+    private Stack<Object> stackParsing;
 
     private LR0DFA dfa;
 
@@ -88,6 +90,8 @@ public class Lexer {
 
         parsingTable = new HashMap<>();
         productionsIdsMap = new HashMap<>();
+        productionsIdsMapRev = new HashMap<>();
+        stackParsing = new Stack<>();
 
         dfa = new LR0DFA();
         specialTerminalsCounter = 0;
@@ -141,8 +145,14 @@ public class Lexer {
                 String product = splittedProd[0] + "→" + bd;
                 if (!productionsIdsMap.containsKey(product)) {
                     productionsIdsMap.put(product, dfa.productionsIds);
-                    dfa.productionsIds++;
+
+                    if (!productionsIdsMapRev.containsKey(dfa.productionsIds)) {
+                        productionsIdsMapRev.put(dfa.productionsIds, product);
+                        dfa.productionsIds++;
+                    }
                 }
+
+
             }
         } else {
             productions.put(splittedProd[0], body);
@@ -151,8 +161,14 @@ public class Lexer {
             String product = splittedProd[0] + "→" + body.get(0);
             if (!productionsIdsMap.containsKey(product)) {
                 productionsIdsMap.put(product, dfa.productionsIds);
-                dfa.productionsIds++;
+
+                if (!productionsIdsMapRev.containsKey(dfa.productionsIds)) {
+                    productionsIdsMapRev.put(dfa.productionsIds, product);
+                    dfa.productionsIds++;
+                }
             }
+
+
         }
     }
 
@@ -229,9 +245,136 @@ public class Lexer {
         System.out.println("PRODUCTIONS IDS MAP: " + productionsIdsMap.toString());
 
         // TODO parsing
+        Scanner scanner = new Scanner(System.in);
+        System.out.println(">>Welcome to the parser. Insert a string to parse: ");
+        String toParse = scanner.nextLine();
+        parse(dfa.getInitialNode().getId(), toParse);
+    }
+
+    // TODO parsing
+    public void parse (int initialNode, String in) {
+        stackParsing.clear();
+        stackParsing.push(initialNode);
+        String input = in + "$";
+
+        boolean stop = false;
+
+        // parse until we reach accepting state and $ symbol
+        try {
+            while (!stop) {
+                // check if last value of stack is an integer
+                if (stackParsing.peek().getClass() == Integer.class) {
+                    // it is an integer, so now get the action from the parsing table
+
+                    for (int j = 0; j < input.length(); j++) {
+                        String inputBit = "";
+
+                        for (int k = j; k < input.length(); k++) {
+                            String currString = Character.toString(input.charAt(k));
+                            boolean isLowercase = !currString.equals(currString.toUpperCase());
+
+                            if (!isLowercase && k == 0) {
+                                j = k+1;
+                                inputBit = currString;
+                                break;
+                            }
+
+                            if (isLowercase) {
+                                inputBit = inputBit + Character.toString(input.charAt(k));
+                            } else {
+                                j = k;
+                                break;
+                            }
+                        }
+
+                        // inputBit has the input to evaluate
+                        List<HashMap> mapList = parsingTable.get(stackParsing.peek());
+                        String action = "";
+
+                        for (HashMap<String, String> map : mapList) {
+                            if (map.containsKey(inputBit)) {
+                                action = map.get(inputBit);
+                                System.out.println("ACTION\n->> " + action);
+                            }
+                        }
+
+                        // interpret action
+                        if (action.charAt(0) == 'S') {
+                            // shift
+                            int newState = Integer.parseInt(action.substring(1));
+                            stackParsing.push(inputBit);
+                            stackParsing.push(newState);
+                            String newInput = input.substring(j);
+                            input = newInput;
+                            break;
+                        } else if (action.charAt(0) == 'R') {
+                            // reduce
+                            int productionId = Integer.parseInt(action.substring(1));
+                            String prod = productionsIdsMapRev.get(productionId);
+
+                            // get head
+                            String[] splittedProd = prod.split("→");
+                            // splittedProd[0] is the head
+
+                            String stoppingFlag = "";
+
+                            for (int k = 0; k < splittedProd[1].length(); k++) {
+                                String currString = Character.toString(splittedProd[1].charAt(k));
+                                boolean isLowercase = !currString.equals(currString.toUpperCase());
+
+                                if (!isLowercase && k == 0) {
+                                    stoppingFlag = currString;
+                                    break;
+                                }
+
+                                if (isLowercase) {
+                                    stoppingFlag = stoppingFlag + currString;
+                                } else break;
+                            }
+
+                            // pop from stack until we find the stoppingFlag
+                            boolean stopPopping = false;
+
+                            while (!stopPopping) {
+                                Object popped = stackParsing.pop();
+
+                                if (popped.getClass() == String.class) {
+                                    if (popped.equals(stoppingFlag)) {
+                                        stopPopping = true;
+                                        // get new state
+                                        int prevState = (int) stackParsing.peek();
+                                        stackParsing.push(splittedProd[0]);
+
+                                        List<HashMap> mplst = parsingTable.get(prevState);
+                                        String act = "";
+
+                                        for (HashMap<String, String> map : mplst) {
+                                            if (map.containsKey(splittedProd[0])) {
+                                                act = map.get(splittedProd[0]);
+                                                stackParsing.push(Integer.parseInt(act));
+                                                break;
+                                            }
+                                        }
+
+                                    }
+                                }
+                            }
+                            break;
+                        } else if (action.equals("Accept") && input.equals("$")) {
+                            // finish parsing
+                            stop = true;
+                            System.out.println("<<Parsing finished!>>\n>>Parsing results: ACCEPT");
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("<<Parsing finished!>>\n>>Parsing results: DENIED");
+        }
     }
 
     // parsing table
+    // TODO conflicts
     public void makeParsingTable() {
         // empty table
         for (LR0Node node : dfa.getNodes()) {
