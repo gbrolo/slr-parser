@@ -15,17 +15,20 @@ public class LexerGenerator {
             Lexer lex = new Lexer();
             /* Add specifications for lex here */
 
-            lex.addCharacter("letter", "\"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ\"");
             lex.addCharacter("digit", "\"0123456789\"");
-            lex.addCharacter("hexdigit", "digit+\"ABCDEF\"");
-            lex.addCharacter("chars", "'a'..'Z'");
+            lex.addCharacter("openingPar", "'('");
+            lex.addCharacter("closingPar", "')'");
             lex.addKeyword("if", "\"if\"");
-            lex.addKeyword("while", "\"while\"");
-            lex.addToken("id=letter{letter}");
-            lex.addToken("number=digit{digit}");
-            lex.addToken("hexnumber=hexdigit{hexdigit}\"(H)\"");
-            lex.addToken("charsequence=chars{chars}\"(CH)\"");
-            lex.addToken("hexchar=hexdigit\"(HC)\"");
+            lex.addKeyword("else", "\"else\"");
+            lex.addKeyword("print", "\"print\"");
+            lex.addToken("int=digit{digit}");
+            lex.addToken("plus=\"+\"");
+            lex.addToken("mult=\"*\"");
+            lex.addToken("sum=int(plus)int");
+            lex.addToken("multiplication=int(mult)int");
+            lex.addToken("p1=openingPar(int)closingPar");
+            lex.addToken("p2=openingPar(sum)closingPar");
+            lex.addToken("p3=openingPar(multiplication)closingPar");
             lex.addProduction("E=T\'+\'E");
             lex.addProduction("E=T");
             lex.addProduction("T=int\'*\'T");
@@ -37,7 +40,6 @@ public class LexerGenerator {
             lex.extendProductions();
             lex.applyClosures();
             lex.buildDFA();
-            lex.firstAndFollow();
             Reader reader = new Reader();
             System.out.println("<<--Welcome to the Lexer-->>\nPlease, enter the filename to lex, " +
                     "starting with \"/\" (current directory is" +

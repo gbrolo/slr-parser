@@ -22,6 +22,7 @@ public class Lexer {
     private HashMap<String, String> charactersMap; // <ident, String>
     private HashMap<String, String> reversedCharactersMap; // <String, ident>
     private HashMap<String, String> identRegexMap; // <ident, regex>
+    private HashMap<String, String> tokenRegexMap;
     private HashMap<String, DFA> tokensMap; // <ident, dfa>
     private HashMap<DFA, String> reversedTokensMap; // <dfa, ident>
     private HashMap<String, String> anyRegexMap; // <regex, ident>
@@ -51,6 +52,8 @@ public class Lexer {
     private HashMap<Integer, String> productionsIdsMapRev;
     private Stack<Object> stackParsing;
 
+    private boolean conflicts;
+
     private LR0DFA dfa;
 
     static public final String WITH_DELIMITER = "((?<=%1$s)|(?=%1$s))";
@@ -63,6 +66,7 @@ public class Lexer {
     public Lexer () {
         keywordsMap = new HashMap<>();
         charactersMap = new HashMap<>();
+        tokenRegexMap = new HashMap<>();
         reversedCharactersMap = new HashMap<>();
         reversedCharactersDFAs = new HashMap<>();
         tokensMap = new HashMap<>();
@@ -92,6 +96,7 @@ public class Lexer {
         productionsIdsMap = new HashMap<>();
         productionsIdsMapRev = new HashMap<>();
         stackParsing = new Stack<>();
+        conflicts = false;
 
         dfa = new LR0DFA();
         specialTerminalsCounter = 0;
@@ -202,10 +207,10 @@ public class Lexer {
             }
         }
 
-        System.out.println("Productions: " + productions.toString());
-        System.out.println("Extended productions: " + extProductions.toString());
-        System.out.println("Terminals: " + terminals.toString());
-        System.out.println("Non terminals: " + nonTerminals.toString());
+//        System.out.println("Productions: " + productions.toString());
+//        System.out.println("Extended productions: " + extProductions.toString());
+//        System.out.println("Terminals: " + terminals.toString());
+//        System.out.println("Non terminals: " + nonTerminals.toString());
 
         LR0Node iNode = new LR0Node(initialNode);
         iNode.setInitialState(true);
@@ -241,18 +246,19 @@ public class Lexer {
 
         // parsing table
         makeParsingTable();
-        System.out.println("PARSING TABLE: " + parsingTable.toString());
-        System.out.println("PRODUCTIONS IDS MAP: " + productionsIdsMap.toString());
+//        System.out.println("PARSING TABLE: " + parsingTable.toString());
+//        System.out.println("PRODUCTIONS IDS MAP: " + productionsIdsMap.toString());
 
-        // TODO parsing
-        Scanner scanner = new Scanner(System.in);
-        System.out.println(">>Welcome to the parser. Insert a string to parse: ");
-        String toParse = scanner.nextLine();
-        parse(dfa.getInitialNode().getId(), toParse);
+        // TODO parse the whole thing
+//        Scanner scanner = new Scanner(System.in);
+//        System.out.println(">>Welcome to the parser. Insert a string to parse: ");
+//        String toParse = scanner.nextLine();
+//        parse(dfa.getInitialNode().getId(), toParse);
     }
 
-    // TODO parsing
-    public void parse (int initialNode, String in) {
+    public void parse (String in) {
+        int initialNode = dfa.getInitialNode().getId();
+        System.out.println(">>Parsing " + in + "! ");
         stackParsing.clear();
         stackParsing.push(initialNode);
         String input = in + "$";
@@ -294,7 +300,7 @@ public class Lexer {
                         for (HashMap<String, String> map : mapList) {
                             if (map.containsKey(inputBit)) {
                                 action = map.get(inputBit);
-                                System.out.println("ACTION\n->> " + action);
+                                System.out.println(">>ACTION->> " + action);
                             }
                         }
 
@@ -363,13 +369,13 @@ public class Lexer {
                         } else if (action.equals("Accept") && input.equals("$")) {
                             // finish parsing
                             stop = true;
-                            System.out.println("<<Parsing finished!>>\n>>Parsing results: ACCEPT");
+                            System.out.println("<<Parsing finished!>>\n>>Parsing results: ACCEPT " + in);
                         }
                     }
                 }
             }
         } catch (Exception e) {
-            System.out.println("<<Parsing finished!>>\n>>Parsing results: DENIED");
+            System.out.println("<<Parsing finished!>>\n>>Parsing results: DENY " + in);
         }
     }
 
@@ -454,6 +460,24 @@ public class Lexer {
                     }
                 }
 
+            }
+        }
+
+        // search for conflicts
+        for (int i = 0; i < dfa.numberOfNodes; i++) {
+            List<HashMap> mapList = parsingTable.get(i);
+            List<String> terminalList = new LinkedList<>();
+
+            for (HashMap<String, String> map : mapList) {
+                for (String key : map.keySet()) {
+                    if (!terminalList.contains(key)) {
+                        terminalList.add(key);
+                    } else {
+                        System.out.println("<<There's a conflict at the parsing table. Two or more actions at the same terminal" +
+                                " " + key + " in state " + i + ">>");
+                        conflicts = true;
+                    }
+                }
             }
         }
     }
@@ -1016,12 +1040,20 @@ public class Lexer {
                         String[] expSplit = importantExpression.split("\\|");
                         String exp = "";
                         for (String str : expSplit) {
-                            exp = exp + "(" + identRegexMap.get(str) + ")|";
+                            String expr = identRegexMap.get(str);
+                            if (expr == null) {
+                                expr = tokenRegexMap.get(str);
+                            }
+                            exp = exp + "(" + expr + ")|";
                         }
                         importantExpression = exp;
                         importantExpression = importantExpression.substring(0, importantExpression.length()-1);
                     } else {
-                        importantExpression = identRegexMap.get(importantExpression);
+                        String toSearch = importantExpression;
+                        importantExpression = identRegexMap.get(toSearch);
+                        if (importantExpression == null) {
+                            importantExpression = tokenRegexMap.get(toSearch);
+                        }
                     }
                 }
 
@@ -1049,9 +1081,17 @@ public class Lexer {
                     re = re + se;
                 } else if (se.contains("|")) {
                     se = se.replace("|", "");
-                    re = re + "|(" + identRegexMap.get(se) + ")";
+                    String expr = identRegexMap.get(se);
+                    if (expr == null) {
+                        expr = tokenRegexMap.get(se);
+                    }
+                    re = re + "|(" + expr + ")";
                 } else {
-                    re = re + "(" + identRegexMap.get(se) + ")";
+                    String expr = identRegexMap.get(se);
+                    if (expr == null) {
+                        expr = tokenRegexMap.get(se);
+                    }
+                    re = re + "(" + expr + ")";
                 }
             }
             regexp = regexp + re;
@@ -1060,6 +1100,7 @@ public class Lexer {
         Transformation transformation = new Transformation(nfa.getTransitionsList(), nfa.getSymbolList(), nfa.getFinalStates(), nfa.getInitialState());
         DFA dfa = new DFA(transformation.getDfaTable(), transformation.getDfaStates(),transformation.getDfaStatesWithNumbering(),transformation.getSymbolList());
 
+        tokenRegexMap.put(ident, regexp);
         tokensDFAs.add(dfa);
         tokensMap.put(ident, dfa);
         reversedTokensMap.put(dfa, ident);
@@ -1220,6 +1261,14 @@ public class Lexer {
             string = string.replace("\'-\'", "ᑛ");
         if (string.equals("\"-\""))
             string = string.replace("\"-\"", "ᑛ");
+        if (string.equals("\'(\'"))
+            string = string.replace("\'(\'", "«");
+        if (string.equals("\"(\""))
+            string = string.replace("\"(\"", "«");
+        if (string.equals("\')\'"))
+            string = string.replace("\')\'", "»");
+        if (string.equals("\")\""))
+            string = string.replace("\")\"", "»");
 
         if (string.contains("ANY")) {
             String[] splitted = string.split(String.format(WITH_DELIMITER, "\\+|\\-"));
@@ -1592,8 +1641,9 @@ public class Lexer {
                 String ident = keywordsMap.get(sp);
                 //recognizedValues.put(ident, sp);
                 lexedValues.add(new TokenNode(ident, sp));
-            } else if (!isWordAToken(sp)){ // if not, check if it's a valid Character
-                return "Invalid expression \"" + sp + "\" ";
+            } else if (!isWordAToken(sp) && !sp.equals("")){ // if not, check if it's a valid Character
+                System.out.println("Invalid expression \"" + sp + "\" ");
+                //return "Invalid expression \"" + sp + "\" ";
             }
         }
 

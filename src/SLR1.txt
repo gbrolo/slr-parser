@@ -1,0 +1,30 @@
+COMPILER SLR1
+CHARACTERS
+    digit = "0123456789".
+    openingPar = '('.
+    closingPar = ')'.
+
+KEYWORDS
+    if = "if".
+    else = "else".
+    print = "print".
+
+TOKENS
+    int = digit{digit}.
+    plus = "+".
+    mult = "*".
+    sum = int(plus)int.
+    multiplication = int(mult)int.
+    p1 = openingPar(int)closingPar.
+    p2 = openingPar(sum)closingPar.
+    p3 = openingPar(multiplication)closingPar.
+
+PRODUCTIONS
+    E = T '+' E.
+    E = T.
+    T = int '*' T.
+    T = int.
+    T = (E).
+
+IGNORE " ".
+END SLR1.

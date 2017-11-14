@@ -155,6 +155,7 @@ public class Reader {
                     break;
 
                 String lexResult = lexer.lexLine(line);
+                lexer.parse(line.replaceAll("\\s+",""));
                 if (!lexResult.equals("")) {
                     // There's an error
                     this.exitCode = "1";
