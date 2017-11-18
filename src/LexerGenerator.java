@@ -26,9 +26,8 @@ public class LexerGenerator {
             lex.addToken("mult=\"*\"");
             lex.addToken("sum=int(plus)int");
             lex.addToken("multiplication=int(mult)int");
-            lex.addToken("p1=openingPar(int)closingPar");
-            lex.addToken("p2=openingPar(sum)closingPar");
-            lex.addToken("p3=openingPar(multiplication)closingPar");
+            lex.addToken("op=openingPar");
+            lex.addToken("cp=closingPar");
             lex.addProduction("E=T\'+\'E");
             lex.addProduction("E=T");
             lex.addProduction("T=int\'*\'T");

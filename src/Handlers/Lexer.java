@@ -40,6 +40,7 @@ public class Lexer {
     private List<String> whiteSpaceList; // List of whitespace characters
     private HashMap<DFA, String> reversedCharactersDFAs; // <DFA, ident>
     private List<TokenNode> lexedValues; // List of tokens
+    private List<TokenNode> temporaryLexedValues;
     private List<String> terminals; // List of terminals inside productions
     private List<String> nonTerminals; // List of non-terminals inside productions
     private List<String> productionSymbols; // List of symbols found in all of the productions
@@ -84,6 +85,7 @@ public class Lexer {
         characterDFAs = new LinkedList<>();
         tokensDFAs = new LinkedList<>();
         lexedValues = new LinkedList<>();
+        temporaryLexedValues = new LinkedList<>();
         whiteSpaceList = new LinkedList<>();
         terminals = new LinkedList<>();
         nonTerminals = new LinkedList<>();
@@ -263,6 +265,14 @@ public class Lexer {
         stackParsing.push(initialNode);
         String input = in + "$";
 
+        // TODO traverse the string and replace terminals with values from LexedValues
+        for (TokenNode tn : temporaryLexedValues) {
+            if (!terminals.contains(tn.getValue())) {
+                input = input.replace(tn.getValue(),tn.getIdent());
+            }
+        }
+
+
         boolean stop = false;
 
         // parse until we reach accepting state and $ symbol
@@ -377,6 +387,7 @@ public class Lexer {
         } catch (Exception e) {
             System.out.println("<<Parsing finished!>>\n>>Parsing results: DENY " + in);
         }
+        temporaryLexedValues.clear();
     }
 
     // parsing table
@@ -1549,6 +1560,8 @@ public class Lexer {
                 word = word.replace("ᑔ", ".");
                 word = word.replace("Ŏ", "*");
                 lexedValues.add(new TokenNode(ident, word));
+
+                temporaryLexedValues.add(new TokenNode(ident, word));
                 return true;
             }
         }

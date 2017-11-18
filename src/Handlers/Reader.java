@@ -166,7 +166,7 @@ public class Reader {
             }
 
             if (this.exitCode.equals("0")) {
-                System.out.println("Result: " + lexer.getLexedValues());
+                System.out.println(">>Tokens: " + lexer.getLexedValues());
             }
 
         } catch (Exception e) {

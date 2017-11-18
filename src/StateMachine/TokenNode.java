@@ -12,6 +12,8 @@ public class TokenNode {
         this.value = value;
     }
 
+    public String getIdent() { return this.ident; }
+    public String getValue() { return this.value; }
     public String toString() {
         return "<" + ident + " = \""+ value + "\"" + ">";
     }

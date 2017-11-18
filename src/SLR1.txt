@@ -15,9 +15,8 @@ TOKENS
     mult = "*".
     sum = int(plus)int.
     multiplication = int(mult)int.
-    p1 = openingPar(int)closingPar.
-    p2 = openingPar(sum)closingPar.
-    p3 = openingPar(multiplication)closingPar.
+    op = openingPar.
+    cp = closingPar.
 
 PRODUCTIONS
     E = T '+' E.
