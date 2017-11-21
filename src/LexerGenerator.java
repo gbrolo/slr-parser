@@ -15,24 +15,25 @@ public class LexerGenerator {
             Lexer lex = new Lexer();
             /* Add specifications for lex here */
 
+            lex.addCharacter("letter", "\"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ\"");
             lex.addCharacter("digit", "\"0123456789\"");
             lex.addCharacter("openingPar", "'('");
             lex.addCharacter("closingPar", "')'");
             lex.addKeyword("if", "\"if\"");
+            lex.addKeyword("while", "\"while\"");
             lex.addKeyword("else", "\"else\"");
-            lex.addKeyword("print", "\"print\"");
-            lex.addToken("int=digit{digit}");
+            lex.addToken("id=letter{letter}");
+            lex.addToken("number=digit{digit}");
             lex.addToken("plus=\"+\"");
             lex.addToken("mult=\"*\"");
-            lex.addToken("sum=int(plus)int");
-            lex.addToken("multiplication=int(mult)int");
             lex.addToken("op=openingPar");
             lex.addToken("cp=closingPar");
             lex.addProduction("E=T\'+\'E");
             lex.addProduction("E=T");
-            lex.addProduction("T=int\'*\'T");
-            lex.addProduction("T=int");
-            lex.addProduction("T=(E)");
+            lex.addProduction("T=F\'*\'T");
+            lex.addProduction("T=F");
+            lex.addProduction("F=(E)");
+            lex.addProduction("F=id");
             lex.addWhiteSpace("\" \"");
 
             /* Ended lex specifications */

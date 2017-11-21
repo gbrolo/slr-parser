@@ -1,0 +1,30 @@
+COMPILER SLR2
+CHARACTERS
+    letter = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".
+    digit = "0123456789".
+    openingPar = '('.
+    closingPar = ')'.
+
+KEYWORDS
+    if="if".
+    while="while".
+    else = "else".
+
+TOKENS
+    id = letter{letter}.
+    number = digit{digit}.
+    plus = "+".
+    mult = "*".
+    op = openingPar.
+    cp = closingPar.
+
+PRODUCTIONS
+    E = T '+' E.
+    E = T.
+    T = F '*' T.
+    T = F.
+    F = (E).
+    F = id.
+
+IGNORE " ".
+END SLR2.
