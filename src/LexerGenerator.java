@@ -28,10 +28,14 @@ public class LexerGenerator {
             lex.addToken("mult=\"*\"");
             lex.addToken("op=openingPar");
             lex.addToken("cp=closingPar");
-            lex.addProduction("E=T\'+\'E");
+            lex.addProduction("E=TR");
             lex.addProduction("E=T");
-            lex.addProduction("T=F\'*\'T");
+            lex.addProduction("R=\'+\'TR");
+            lex.addProduction("R=\'+\'T");
+            lex.addProduction("T=FQ");
             lex.addProduction("T=F");
+            lex.addProduction("Q=\'*\'FQ");
+            lex.addProduction("Q=\'*\'F");
             lex.addProduction("F=(E)");
             lex.addProduction("F=id");
             lex.addWhiteSpace("\" \"");

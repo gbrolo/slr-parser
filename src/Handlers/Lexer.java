@@ -242,14 +242,15 @@ public class Lexer {
                 tr.setTrSymbol(replacement);
             }
         }
-        System.out.println(dfa.toString());
+        dfa.reassureInitialNodeIsIn();
 
         firstAndFollow();
 
         // parsing table
         makeParsingTable();
-//        System.out.println("PARSING TABLE: " + parsingTable.toString());
-//        System.out.println("PRODUCTIONS IDS MAP: " + productionsIdsMap.toString());
+        System.out.println("DFA: \n" + dfa.toString());
+        System.out.println("PARSING TABLE: " + parsingTable.toString());
+        System.out.println("PRODUCTIONS IDS MAP: " + productionsIdsMap.toString());
 
         // TODO parse the whole thing
 //        Scanner scanner = new Scanner(System.in);
@@ -259,140 +260,144 @@ public class Lexer {
     }
 
     public void parse (String in) {
-        int initialNode = dfa.getInitialNode().getId();
-        System.out.println(">>Parsing " + in + "! ");
-        stackParsing.clear();
-        stackParsing.push(initialNode);
-        String input = in + "$";
+        if (!conflicts) {
+            int initialNode = dfa.getInitialNode().getId();
+            System.out.println(">>Parsing " + in + "! ");
+            stackParsing.clear();
+            stackParsing.push(initialNode);
+            String input = in + "$";
 
-        // TODO traverse the string and replace terminals with values from LexedValues
-        for (TokenNode tn : temporaryLexedValues) {
-            if (!terminals.contains(tn.getValue())) {
-                input = input.replace(tn.getValue(),tn.getIdent());
+            // TODO traverse the string and replace terminals with values from LexedValues
+            for (TokenNode tn : temporaryLexedValues) {
+                if (!terminals.contains(tn.getValue())) {
+                    input = input.replace(tn.getValue(),tn.getIdent());
+                }
             }
-        }
 
 
-        boolean stop = false;
+            boolean stop = false;
 
-        // parse until we reach accepting state and $ symbol
-        try {
-            while (!stop) {
-                // check if last value of stack is an integer
-                if (stackParsing.peek().getClass() == Integer.class) {
-                    // it is an integer, so now get the action from the parsing table
+            // parse until we reach accepting state and $ symbol
+            try {
+                while (!stop) {
+                    // check if last value of stack is an integer
+                    if (stackParsing.peek().getClass() == Integer.class) {
+                        // it is an integer, so now get the action from the parsing table
 
-                    for (int j = 0; j < input.length(); j++) {
-                        String inputBit = "";
+                        for (int j = 0; j < input.length(); j++) {
+                            String inputBit = "";
 
-                        for (int k = j; k < input.length(); k++) {
-                            String currString = Character.toString(input.charAt(k));
-                            boolean isLowercase = !currString.equals(currString.toUpperCase());
-
-                            if (!isLowercase && k == 0) {
-                                j = k+1;
-                                inputBit = currString;
-                                break;
-                            }
-
-                            if (isLowercase) {
-                                inputBit = inputBit + Character.toString(input.charAt(k));
-                            } else {
-                                j = k;
-                                break;
-                            }
-                        }
-
-                        // inputBit has the input to evaluate
-                        List<HashMap> mapList = parsingTable.get(stackParsing.peek());
-                        String action = "";
-
-                        for (HashMap<String, String> map : mapList) {
-                            if (map.containsKey(inputBit)) {
-                                action = map.get(inputBit);
-                                System.out.println(">>ACTION->> " + action);
-                            }
-                        }
-
-                        // interpret action
-                        if (action.charAt(0) == 'S') {
-                            // shift
-                            int newState = Integer.parseInt(action.substring(1));
-                            stackParsing.push(inputBit);
-                            stackParsing.push(newState);
-                            String newInput = input.substring(j);
-                            input = newInput;
-                            break;
-                        } else if (action.charAt(0) == 'R') {
-                            // reduce
-                            int productionId = Integer.parseInt(action.substring(1));
-                            String prod = productionsIdsMapRev.get(productionId);
-
-                            // get head
-                            String[] splittedProd = prod.split("→");
-                            // splittedProd[0] is the head
-
-                            String stoppingFlag = "";
-
-                            for (int k = 0; k < splittedProd[1].length(); k++) {
-                                String currString = Character.toString(splittedProd[1].charAt(k));
+                            for (int k = j; k < input.length(); k++) {
+                                String currString = Character.toString(input.charAt(k));
                                 boolean isLowercase = !currString.equals(currString.toUpperCase());
 
                                 if (!isLowercase && k == 0) {
-                                    stoppingFlag = currString;
+                                    j = k+1;
+                                    inputBit = currString;
                                     break;
                                 }
 
                                 if (isLowercase) {
-                                    stoppingFlag = stoppingFlag + currString;
-                                } else break;
-                            }
-
-                            // pop from stack until we find the stoppingFlag
-                            boolean stopPopping = false;
-
-                            while (!stopPopping) {
-                                Object popped = stackParsing.pop();
-
-                                if (popped.getClass() == String.class) {
-                                    if (popped.equals(stoppingFlag)) {
-                                        stopPopping = true;
-                                        // get new state
-                                        int prevState = (int) stackParsing.peek();
-                                        stackParsing.push(splittedProd[0]);
-
-                                        List<HashMap> mplst = parsingTable.get(prevState);
-                                        String act = "";
-
-                                        for (HashMap<String, String> map : mplst) {
-                                            if (map.containsKey(splittedProd[0])) {
-                                                act = map.get(splittedProd[0]);
-                                                stackParsing.push(Integer.parseInt(act));
-                                                break;
-                                            }
-                                        }
-
-                                    }
+                                    inputBit = inputBit + Character.toString(input.charAt(k));
+                                } else {
+                                    j = k;
+                                    break;
                                 }
                             }
-                            break;
-                        } else if (action.equals("Accept") && input.equals("$")) {
-                            // finish parsing
-                            stop = true;
-                            System.out.println("<<Parsing finished!>>\n>>Parsing results: ACCEPT " + in);
+
+                            // inputBit has the input to evaluate
+                            List<HashMap> mapList = parsingTable.get(stackParsing.peek());
+                            String action = "";
+
+                            for (HashMap<String, String> map : mapList) {
+                                if (map.containsKey(inputBit)) {
+                                    action = map.get(inputBit);
+                                    System.out.println(">>ACTION->> " + action);
+                                }
+                            }
+
+                            // interpret action
+                            if (action.charAt(0) == 'S') {
+                                // shift
+                                int newState = Integer.parseInt(action.substring(1));
+                                stackParsing.push(inputBit);
+                                stackParsing.push(newState);
+                                String newInput = input.substring(j);
+                                input = newInput;
+                                break;
+                            } else if (action.charAt(0) == 'R') {
+                                // reduce
+                                int productionId = Integer.parseInt(action.substring(1));
+                                String prod = productionsIdsMapRev.get(productionId);
+
+                                // get head
+                                String[] splittedProd = prod.split("→");
+                                // splittedProd[0] is the head
+
+                                String stoppingFlag = "";
+
+                                for (int k = 0; k < splittedProd[1].length(); k++) {
+                                    String currString = Character.toString(splittedProd[1].charAt(k));
+                                    boolean isLowercase = !currString.equals(currString.toUpperCase());
+
+                                    if (!isLowercase && k == 0) {
+                                        stoppingFlag = currString;
+                                        break;
+                                    }
+
+                                    if (isLowercase) {
+                                        stoppingFlag = stoppingFlag + currString;
+                                    } else break;
+                                }
+
+                                // pop from stack until we find the stoppingFlag
+                                boolean stopPopping = false;
+
+                                while (!stopPopping) {
+                                    Object popped = stackParsing.pop();
+
+                                    if (popped.getClass() == String.class) {
+                                        if (popped.equals(stoppingFlag)) {
+                                            stopPopping = true;
+                                            // get new state
+                                            int prevState = (int) stackParsing.peek();
+                                            stackParsing.push(splittedProd[0]);
+
+                                            List<HashMap> mplst = parsingTable.get(prevState);
+                                            String act = "";
+
+                                            for (HashMap<String, String> map : mplst) {
+                                                if (map.containsKey(splittedProd[0])) {
+                                                    act = map.get(splittedProd[0]);
+                                                    stackParsing.push(Integer.parseInt(act));
+                                                    break;
+                                                }
+                                            }
+
+                                        }
+                                    }
+                                }
+                                break;
+                            } else if (action.equals("Accept") && input.equals("$")) {
+                                // finish parsing
+                                stop = true;
+                                System.out.println("<<Parsing finished!>>\n>>Parsing results: ACCEPT " + in);
+                            }
                         }
                     }
                 }
+            } catch (Exception e) {
+                System.out.println("<<Parsing finished!>>\n>>Parsing results: DENY " + in);
             }
-        } catch (Exception e) {
-            System.out.println("<<Parsing finished!>>\n>>Parsing results: DENY " + in);
-        }
-        temporaryLexedValues.clear();
+            temporaryLexedValues.clear();
+        } else System.out.println("<<CAN'T PARSE STRING. NOT AN SLR GRAMMAR. SEE LOG FOR DETAILS.>>");
+
     }
 
     // parsing table
     // TODO conflicts
     public void makeParsingTable() {
+        dfa.recalculateFinalNodes();
         // empty table
         for (LR0Node node : dfa.getNodes()) {
             // fill up internal
@@ -789,7 +794,7 @@ public class Lexer {
                                 if ((j+1) < bd.length() && currChar.equals(head)) {
                                     String fl = Character.toString(bd.charAt(j+1));
                                     List<String> follows = follow.get(head);
-                                    if (!follows.contains(fl)) {
+                                    if (!follows.contains(fl) && !nonTerminals.contains(fl)) {
                                         follows.add(fl);
                                     }
                                     follow.put(head, follows);
@@ -854,7 +859,9 @@ public class Lexer {
                             followList.addAll(follow.get(Character.toString(bd.charAt(1))));
                             String beta = "";
                             if (!terminals.contains(Character.toString(bd.charAt(2)))) {
-                                beta = Character.toString(bd.charAt(2)) + Character.toString(bd.charAt(3));
+                                if (bd.length() == 4) {
+                                    beta = Character.toString(bd.charAt(2)) + Character.toString(bd.charAt(3));
+                                } else beta = Character.toString(bd.charAt(2));
                             } else {
                                 beta = Character.toString(bd.charAt(2));
                             }

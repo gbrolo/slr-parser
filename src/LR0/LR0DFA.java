@@ -38,6 +38,19 @@ public class LR0DFA {
     public Stack<LR0Node> getNodesFProds() { return nodesFProds; }
     public List<LR0Transition> getTrList () { return trList; }
 
+    public void recalculateFinalNodes() {
+        for (LR0Node node : nodes) {
+            List<String> prods = node.getExtProductions();
+
+            for (String prod : prods) {
+                if (prod.charAt(prod.length()-1) == '.') {
+                    node.setFinalState(true);
+                    break;
+                }
+            }
+        }
+    }
+
     public boolean hasThisFirstProd(String fProd) {
         for (LR0Node node : nodes) {
             if (node.getFirstProd().equals(fProd)) {
@@ -49,11 +62,16 @@ public class LR0DFA {
         return false;
     }
 
-    public String toString() {
-        String nodesContent = "";
+    public void reassureInitialNodeIsIn () {
         if (!nodes.contains(initialNode)) {
             nodes.add(initialNode);
         }
+    }
+
+    public String toString() {
+        String nodesContent = "";
+        reassureInitialNodeIsIn();
+        recalculateFinalNodes();
         for (LR0Node node : nodes) {
             nodesContent = nodesContent + "\nNODE: " + node.toString() + " HAS: " + node.showContent();
         }

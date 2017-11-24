@@ -1,0 +1,32 @@
+COMPILER SLR5
+CHARACTERS
+    letter = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".
+    digit = "0123456789".
+    openingPar = '('.
+    closingPar = ')'.
+    comma = ','.
+
+KEYWORDS
+    if="if".
+    while="while".
+    else = "else".
+
+TOKENS
+    id = letter{letter}.
+    number = digit{digit}.
+    plus = "+".
+    mult = "*".
+    op = openingPar.
+    cp = closingPar.
+    cm = comma.
+
+PRODUCTIONS
+    E = (L).
+    E = id.
+    L = E A.
+    L = E.
+    A = ',' E A.
+    A = ',' E.
+
+IGNORE " ".
+END SLR5.

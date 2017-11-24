@@ -1,0 +1,18 @@
+COMPILER 323
+CHARACTERS
+    letter = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".
+    digit = "0123456789".
+
+TOKENS
+    id = letter{letter}.
+    number = digit{digit}.
+    sum = "+".
+
+PRODUCTIONS
+    E = T R.
+    E = T.
+    R = '+' E.
+    T = number.
+
+IGNORE " ".
+END 323.

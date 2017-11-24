@@ -1,0 +1,34 @@
+COMPILER SLR4
+CHARACTERS
+    letter = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".
+    digit = "0123456789".
+    openingPar = '('.
+    closingPar = ')'.
+
+KEYWORDS
+    if="if".
+    while="while".
+    else = "else".
+
+TOKENS
+    id = letter{letter}.
+    number = digit{digit}.
+    plus = "+".
+    mult = "*".
+    op = openingPar.
+    cp = closingPar.
+
+PRODUCTIONS
+    E = T R.
+    E = T.
+    R = '+' T R.
+    R = '+' T.
+    T = F Q.
+    T = F.
+    Q = '*' F Q.
+    Q = '*' F.
+    F = (E).
+    F = id.
+
+IGNORE " ".
+END SLR4.

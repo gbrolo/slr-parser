@@ -1,0 +1,56 @@
+COMPILER SLR3
+CHARACTERS
+    letter = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".
+    digit = "0123456789".
+    openingPar = '('.
+    closingPar = ')'.
+
+KEYWORDS
+    if="if".
+    while="while".
+    else = "else".
+
+TOKENS
+    id = letter{letter}.
+    number = digit{digit}.
+    op = openingPar.
+    cp = closingPar.
+    pc = ';'.
+    assignop = "assignop".
+    lt = '<'.
+    eq = "eq".
+    res = '-'.
+    div = '/'.
+    sum = "+".
+    mul = "*".
+
+PRODUCTIONS
+    P = T.
+    T = M Q.
+    T = M.
+    Q = ';' M Q.
+    Q = ';' M.
+    M = A.
+    A = id assignop E.
+    E = X Z.
+    Z = '<' X.
+    Z = eq X.
+    E = X.
+    X = R W.
+    W = Y W.
+    X = R.
+    W = Y.
+    Y = '+' R.
+    Y = '-' R.
+    R = F V.
+    V = J V.
+    R = F.
+    V = J.
+    J = '*' F.
+    J = '/' F.
+    F = (E).
+    F = number.
+    F = id.
+
+IGNORE " ".
+END SLR3.
