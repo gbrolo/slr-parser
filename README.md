@@ -1,9 +1,7 @@
 # Cocol SLR(0)
 
 Provide an archive that follows Cocol grammar, then check if it's sintactically correct. Then, provide
-an archive and lex it for token generation.
-
-With first and follow included!
+an archive and lex it for token generation and parsing using an SLR parser.
 
 ## Video Demonstration
 
@@ -34,13 +32,14 @@ src\Run\Runnable.java
 
 ## Running the program
 
-Load an archive with specifications, i.e., provided examples "example.txt" and "example1.txt"
-Then, load another test archive for token generation, such as "test.txt".
+Load an archive with specifications, i.e., provided examples "SLR1.txt".
+Then, load another test archive for token generation, such as "SLR1_RUN.txt".
 
 ## Program outputs
 
 * For a successful analysis, program will prompt "exit code 0".
 * If an error is detected, error will be logged in console, followed by "exit code 1".
+* Program will output the recognized tokens, LR(0) automaton and the parsing process with its results.
 
 ## Authors
 
@@ -58,3 +57,5 @@ https://gist.github.com/gmenard/6161825
 * To Barry Brown, for explaining the NFA to DFA algorithm here: https://www.youtube.com/watch?v=taClnxU-nao
 * However, the previous video NEEDED to be supplemented with: 
 http://web.cecs.pdx.edu/~harry/compilers/slides/LexicalPart3.pdf
+
+* Made in 2017 for Compiler Design Course at [Universidad del Valle de Guatemala](http://www.uvg.edu.gt/index2.html)
